@@ -1,0 +1,302 @@
+[1mdiff --git a/src/main/java/com/kuru/delivery/common/exception/AccountLockedException.java b/src/main/java/com/kuru/delivery/common/exception/AccountLockedException.java[m
+[1mdeleted file mode 100644[m
+[1mindex 21513e9..0000000[m
+[1m--- a/src/main/java/com/kuru/delivery/common/exception/AccountLockedException.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,19 +0,0 @@[m
+[31m-package com.kuru.delivery.common.exception;[m
+[31m-[m
+[31m-/**[m
+[31m- * Exception thrown when an account is locked due to too many failed login attempts.[m
+[31m- */[m
+[31m-public class AccountLockedException extends RuntimeException {[m
+[31m-    [m
+[31m-    private final long lockoutRemainingSeconds;[m
+[31m-[m
+[31m-    public AccountLockedException(String message, long lockoutRemainingSeconds) {[m
+[31m-        super(message);[m
+[31m-        this.lockoutRemainingSeconds = lockoutRemainingSeconds;[m
+[31m-    }[m
+[31m-[m
+[31m-    public long getLockoutRemainingSeconds() {[m
+[31m-        return lockoutRemainingSeconds;[m
+[31m-    }[m
+[31m-}[m
+[31m-[m
+[1mdiff --git a/src/main/java/com/kuru/delivery/common/exception/AlreadyVerifiedException.java b/src/main/java/com/kuru/delivery/common/exception/AlreadyVerifiedException.java[m
+[1mdeleted file mode 100644[m
+[1mindex b94a33e..0000000[m
+[1m--- a/src/main/java/com/kuru/delivery/common/exception/AlreadyVerifiedException.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,9 +0,0 @@[m
+[31m-package com.kuru.delivery.common.exception;[m
+[31m-[m
+[31m-public class AlreadyVerifiedException extends RuntimeException {[m
+[31m-    public AlreadyVerifiedException(String email) {[m
+[31m-        super("Email is already verified: " + email);[m
+[31m-    }[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[1mdiff --git a/src/main/java/com/kuru/delivery/common/exception/EmailNotFoundException.java b/src/main/java/com/kuru/delivery/common/exception/EmailNotFoundException.java[m
+[1mdeleted file mode 100644[m
+[1mindex 20f4e52..0000000[m
+[1m--- a/src/main/java/com/kuru/delivery/common/exception/EmailNotFoundException.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,9 +0,0 @@[m
+[31m-package com.kuru.delivery.common.exception;[m
+[31m-[m
+[31m-public class EmailNotFoundException extends RuntimeException {[m
+[31m-    public EmailNotFoundException(String email) {[m
+[31m-        super("Email not found: " + email);[m
+[31m-    }[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[1mdiff --git a/src/main/java/com/kuru/delivery/common/exception/EmailNotVerifiedException.java b/src/main/java/com/kuru/delivery/common/exception/EmailNotVerifiedException.java[m
+[1mdeleted file mode 100644[m
+[1mindex 0de3826..0000000[m
+[1m--- a/src/main/java/com/kuru/delivery/common/exception/EmailNotVerifiedException.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,8 +0,0 @@[m
+[31m-package com.kuru.delivery.common.exception;[m
+[31m-[m
+[31m-public class EmailNotVerifiedException extends RuntimeException {[m
+[31m-    public EmailNotVerifiedException(String email) {[m
+[31m-        super("Email address " + email + " has not been verified. Please check your email for the verification code.");[m
+[31m-    }[m
+[31m-}[m
+[31m-[m
+[1mdiff --git a/src/main/java/com/kuru/delivery/common/exception/EmailSendingException.java b/src/main/java/com/kuru/delivery/common/exception/EmailSendingException.java[m
+[1mdeleted file mode 100644[m
+[1mindex bcd57ce..0000000[m
+[1m--- a/src/main/java/com/kuru/delivery/common/exception/EmailSendingException.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,17 +0,0 @@[m
+[31m-package com.kuru.delivery.common.exception;[m
+[31m-[m
+[31m-/**[m
+[31m- * Exception thrown when email sending fails.[m
+[31m- * Provides user-friendly error messages.[m
+[31m- */[m
+[31m-public class EmailSendingException extends RuntimeException {[m
+[31m-    [m
+[31m-    public EmailSendingException(String message) {[m
+[31m-        super(message);[m
+[31m-    }[m
+[31m-    [m
+[31m-    public EmailSendingException(String message, Throwable cause) {[m
+[31m-        super(message, cause);[m
+[31m-    }[m
+[31m-}[m
+[31m-[m
+[1mdiff --git a/src/main/java/com/kuru/delivery/common/exception/GlobalExceptionHandler.java b/src/main/java/com/kuru/delivery/common/exception/GlobalExceptionHandler.java[m
+[1mdeleted file mode 100644[m
+[1mindex 05f336b..0000000[m
+[1m--- a/src/main/java/com/kuru/delivery/common/exception/GlobalExceptionHandler.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,174 +0,0 @@[m
+[31m-package com.kuru.delivery.common.exception;[m
+[31m-[m
+[31m-import com.kuru.delivery.common.dto.ErrorResponse;[m
+[31m-import org.slf4j.Logger;[m
+[31m-import org.slf4j.LoggerFactory;[m
+[31m-import org.springframework.dao.DataIntegrityViolationException;[m
+[31m-import org.springframework.http.HttpStatus;[m
+[31m-import org.springframework.http.ResponseEntity;[m
+[31m-import org.springframework.http.converter.HttpMessageNotReadableException;[m
+[31m-import org.springframework.security.access.AccessDeniedException;[m
+[31m-import org.springframework.validation.BindException;[m
+[31m-import org.springframework.web.bind.MethodArgumentNotValidException;[m
+[31m-import org.springframework.web.bind.annotation.ControllerAdvice;[m
+[31m-import org.springframework.web.bind.annotation.ExceptionHandler;[m
+[31m-[m
+[31m-import jakarta.persistence.EntityNotFoundException;[m
+[31m-import jakarta.validation.ConstraintViolationException;[m
+[31m-import java.sql.SQLException;[m
+[31m-[m
+[31m-@ControllerAdvice[m
+[31m-public class GlobalExceptionHandler {[m
+[31m-[m
+[31m-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);[m
+[31m-[m
+[31m-    @ExceptionHandler(EmailNotFoundException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleEmailNotFound(EmailNotFoundException ex) {[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());[m
+[31m-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(InvalidCodeException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleInvalidCode(InvalidCodeException ex) {[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());[m
+[31m-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(AlreadyVerifiedException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleAlreadyVerified(AlreadyVerifiedException ex) {[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());[m
+[31m-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(EmailNotVerifiedException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleEmailNotVerified(EmailNotVerifiedException ex) {[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage());[m
+[31m-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(com.kuru.delivery.common.exception.EmailSendingException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleEmailSending(com.kuru.delivery.common.exception.EmailSendingException ex) {[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.SERVICE_UNAVAILABLE.value(), ex.getMessage());[m
+[31m-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(com.kuru.delivery.common.exception.ResourceAccessDeniedException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleResourceAccessDenied(com.kuru.delivery.common.exception.ResourceAccessDeniedException ex) {[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage());[m
+[31m-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(com.kuru.delivery.common.exception.PaymentSecurityException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handlePaymentSecurity(com.kuru.delivery.common.exception.PaymentSecurityException ex) {[m
+[31m-        logger.error("Payment security violation: {}", ex.getMessage());[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage());[m
+[31m-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(EntityNotFoundException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {[m
+[31m-        logger.warn("Entity not found: {}", ex.getMessage());[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Resource not found");[m
+[31m-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(IllegalArgumentException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {[m
+[31m-        logger.warn("Invalid argument: {}", ex.getMessage());[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());[m
+[31m-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(IllegalStateException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex) {[m
+[31m-        logger.warn("Illegal state: {}", ex.getMessage());[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());[m
+[31m-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(SecurityException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleSecurity(SecurityException ex) {[m
+[31m-        logger.warn("Security violation: {}", ex.getMessage());[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.FORBIDDEN.value(), "Access denied");[m
+[31m-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(AccessDeniedException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {[m
+[31m-        logger.warn("Access denied: {}", ex.getMessage());[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.FORBIDDEN.value(), "Access denied");[m
+[31m-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(MethodArgumentNotValidException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {[m
+[31m-        String errorMessage = ex.getBindingResult().getFieldErrors().stream()[m
+[31m-                .map(error -> error.getField() + ": " + error.getDefaultMessage())[m
+[31m-                .findFirst()[m
+[31m-                .orElse("Validation failed");[m
+[31m-        [m
+[31m-        logger.warn("Validation error: {}", errorMessage);[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), errorMessage);[m
+[31m-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(ConstraintViolationException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {[m
+[31m-        logger.warn("Constraint violation: {}", ex.getMessage());[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Invalid input data");[m
+[31m-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(DataIntegrityViolationException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {[m
+[31m-        logger.error("Data integrity violation", ex);[m
+[31m-        [m
+[31m-        String message = "Data integrity violation";[m
+[31m-        if (ex.getCause() instanceof SQLException) {[m
+[31m-            SQLException sqlEx = (SQLException) ex.getCause();[m
+[31m-            if (sqlEx.getMessage().contains("UNIQUE constraint") || sqlEx.getMessage().contains("duplicate key")) {[m
+[31m-                message = "This record already exists";[m
+[31m-            } else if (sqlEx.getMessage().contains("FOREIGN KEY constraint")) {[m
+[31m-                message = "Invalid reference to related data";[m
+[31m-            } else if (sqlEx.getMessage().contains("NOT NULL constraint")) {[m
+[31m-                message = "Required field is missing";[m
+[31m-            }[m
+[31m-        }[m
+[31m-        [m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.CONFLICT.value(), message);[m
+[31m-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(SQLException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleSQLException(SQLException ex) {[m
+[31m-        logger.error("SQL error occurred", ex);[m
+[31m-        [m
+[31m-        ErrorResponse body = new ErrorResponse([m
+[31m-                HttpStatus.INTERNAL_SERVER_ERROR.value(),[m
+[31m-                "A database error occurred. Please try again later."[m
+[31m-        );[m
+[31m-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(HttpMessageNotReadableException.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleMessageNotReadable(HttpMessageNotReadableException ex) {[m
+[31m-        logger.warn("Invalid request body: {}", ex.getMessage());[m
+[31m-        ErrorResponse body = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Invalid request format");[m
+[31m-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);[m
+[31m-    }[m
+[31m-[m
+[31m-    @ExceptionHandler(Exception.class)[m
+[31m-    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {[m
+[31m-        // CRITICAL: Log full exception with stack trace for backend debugging[m
+[31m-        logger.error("Unexpected error occurred", ex);[m
+[31m-        [m
+[31m-        // CRITICAL: Return safe, generic message to client (NO stack trace)[m
+[31m-        ErrorResponse body = new ErrorResponse([m
+[31m-                HttpStatus.INTERNAL_SERVER_ERROR.value(),[m
+[31m-                "An unexpected error occurred. Please try again later."[m
+[31m-        );[m
+[31m-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);[m
+[31m-    }[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[1mdiff --git a/src/main/java/com/kuru/delivery/common/exception/InvalidCodeException.java b/src/main/java/com/kuru/delivery/common/exception/InvalidCodeException.java[m
+[1mdeleted file mode 100644[m
+[1mindex ae9d6ac..0000000[m
+[1m--- a/src/main/java/com/kuru/delivery/common/exception/InvalidCodeException.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,9 +0,0 @@[m
+[31m-package com.kuru.delivery.common.exception;[m
+[31m-[m
+[31m-public class InvalidCodeException extends RuntimeException {[m
+[31m-    public InvalidCodeException(String message) {[m
+[31m-        super(message);[m
+[31m-    }[m
+[31m-}[m
+[31m-[m
+[31m-[m
+[1mdiff --git a/src/main/java/com/kuru/delivery/common/exception/PaymentSecurityException.java b/src/main/java/com/kuru/delivery/common/exception/PaymentSecurityException.java[m
+[1mdeleted file mode 100644[m
+[1mindex 28c54c3..0000000[m
+[1m--- a/src/main/java/com/kuru/delivery/common/exception/PaymentSecurityException.java[m
+[1m+++ /dev/null[m
+[36m@@ -1,17 +0,0 @@[m
+[31m-package com.kuru.delivery.common.exception;[m
+[31m-[m
+[31m-/**[m
+[31m- * Exception thrown when payment security violations are detected.[m
+[31m- * Used for fraud attempts, unauthorized access, and payment manipulation.[m
+[31m- */[m
+[31m-public class PaymentSecurityException extends RuntimeException {[m
+[31m-    [m
+[31m-  
