@@ -19,18 +19,7 @@ public class FAQController {
 
     private final FAQService faqService;
     
-    
-
-    
-    public FAQController(FAQService faqService) {
-		super();
-		this.faqService = faqService;
-	}
-
-
-
-
-	// Public endpoint - Get all active FAQs
+    // Public endpoint - Get all active FAQs
     @GetMapping
     public ResponseEntity<List<FAQResponse>> getAllActiveFAQs() {
         List<FAQResponse> faqs = faqService.getAllActiveFAQs();

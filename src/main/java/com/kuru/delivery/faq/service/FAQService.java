@@ -20,14 +20,7 @@ public class FAQService {
 
     private final FAQRepository faqRepository;
     
-    
-
-    public FAQService(FAQRepository faqRepository) {
-		super();
-		this.faqRepository = faqRepository;
-	}
-
-	// Get all active FAQs (for public customer UI)
+    // Get all active FAQs (for public customer UI)
     @Transactional(readOnly = true)
     public List<FAQResponse> getAllActiveFAQs() {
         return faqRepository.findByIsActiveTrueOrderByCategoryAscDisplayOrderAsc()

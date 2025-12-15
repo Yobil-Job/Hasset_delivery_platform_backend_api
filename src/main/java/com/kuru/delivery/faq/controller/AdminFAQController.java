@@ -2,7 +2,6 @@ package com.kuru.delivery.faq.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,17 +30,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminFAQController {
 
-	@Autowired
     private final FAQService faqService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    public AdminFAQController(FAQService faqService) {
-		this.faqService = faqService;
-	}
-
-	// Get all FAQs (including inactive)
+    // Get all FAQs (including inactive)
     @GetMapping
     public ResponseEntity<List<FAQResponse>> getAllFAQs() {
         RoleValidationUtil.validateAdminRole(userRepository);
