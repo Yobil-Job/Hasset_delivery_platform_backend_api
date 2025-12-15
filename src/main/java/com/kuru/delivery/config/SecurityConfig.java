@@ -113,7 +113,7 @@ public class SecurityConfig {
         } else {
             configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "https://hasset-delivery-frontend.onrender.com";
+                "https://hasset-delivery-frontend.onrender.com",
                 "http://localhost:5173"
             ));
         }
