@@ -106,7 +106,17 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
+
+        // RELAXED CORS FOR DEPLOYMENT
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setMaxAge(3600L);
+
+        /*
+        // PREVIOUS, MORE RESTRICTIVE CONFIGURATION (KEEPING FOR FUTURE USE)
         String allowedOriginsEnv = System.getenv("CORS_ALLOWED_ORIGINS");
         if (allowedOriginsEnv != null && !allowedOriginsEnv.isEmpty()) {
             configuration.setAllowedOrigins(List.of(allowedOriginsEnv.split(",")));
@@ -117,12 +127,12 @@ public class SecurityConfig {
                 "http://localhost:5173"
             ));
         }
-        
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setAllowCredentials(true);
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setMaxAge(3600L);
+        */
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
