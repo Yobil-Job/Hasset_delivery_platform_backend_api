@@ -1,22 +1,19 @@
 package com.kuru.delivery.email;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
-    private final JavaMailSender mailSender;
 
     @Value("${app.mail.from}")
     private String fromAddress;
@@ -24,9 +21,18 @@ public class EmailService {
     @Value("${app.mail.admin}")
     private String adminAddress;
 
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
+    @Value("${RESEND_API_KEY:}")
+    private String resendApiKey;
+
+    @Value("${RESEND_FROM_EMAIL:}")
+    private String resendFromEmail;
+
+    @Value("${RESEND_FROM_NAME:Haset Delivery}")
+    private String resendFromName;
+
+    private final WebClient resendClient = WebClient.builder()
+            .baseUrl("https://api.resend.com")
+            .build();
 
     public void sendVerificationEmail(String to, String code) {
         String subject = "Verify Your Email - ሀሴት Delivery";
@@ -47,51 +53,65 @@ public class EmailService {
     }
 
     private void sendHtmlMessage(String to, String subject, String htmlBody) {
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            logger.error("RESEND_API_KEY is not configured. Cannot send email to {}", to);
+            throw new com.kuru.delivery.common.exception.EmailSendingException(
+                "Email service is not configured. Please contact support.", null);
+        }
+
+        String from = String.format("%s <%s>", resendFromName, resendFromEmail != null && !resendFromEmail.isBlank() ? resendFromEmail : fromAddress);
+
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            
-            try {
-                helper.setFrom(fromAddress, "Haset Delivery");
-            } catch (UnsupportedEncodingException e) {
-                // Fallback to email only if encoding fails
-                helper.setFrom(fromAddress);
-            }
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true); // true = HTML content
-            
-            mailSender.send(message);
-            logger.info("Email sent successfully to: {}", to);
-        } catch (MessagingException e) {
-            logger.error("Failed to send email to: {}", to, e);
-            
-            // Provide user-friendly error message
-            String userMessage = "Unable to send email at this time. Please check your email configuration or try again later.";
-            if (e.getMessage() != null && e.getMessage().contains("connection")) {
-                userMessage = "Email service is temporarily unavailable. Please try again later or contact support.";
-            }
-            throw new com.kuru.delivery.common.exception.EmailSendingException(userMessage, e);
+            resendClient.post()
+                .uri("/emails")
+                .header("Authorization", "Bearer " + resendApiKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(Map.of(
+                    "from", from,
+                    "to", List.of(to),
+                    "subject", subject,
+                    "html", htmlBody
+                ))
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+
+            logger.info("Email sent successfully to: {} via Resend", to);
         } catch (Exception e) {
-            logger.error("Unexpected error sending email to: {}", to, e);
-            
-            // Provide user-friendly error message
+            logger.error("Unexpected error sending email via Resend to: {}", to, e);
             String userMessage = "Unable to send email at this time. Please try again later or contact support.";
             throw new com.kuru.delivery.common.exception.EmailSendingException(userMessage, e);
         }
     }
 
     private void sendSimpleMessage(String to, String subject, String text) {
+        // For admin contact email, we can also send plain-text using the same Resend API
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            logger.error("RESEND_API_KEY is not configured. Cannot send simple email to {}", to);
+            throw new com.kuru.delivery.common.exception.EmailSendingException(
+                "Email service is not configured. Please contact support.", null);
+        }
+
+        String from = String.format("%s <%s>", resendFromName, resendFromEmail != null && !resendFromEmail.isBlank() ? resendFromEmail : fromAddress);
+
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromAddress);
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(text);
-            mailSender.send(message);
-            logger.info("Simple email sent successfully to: {}", to);
+            resendClient.post()
+                .uri("/emails")
+                .header("Authorization", "Bearer " + resendApiKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(Map.of(
+                    "from", from,
+                    "to", List.of(to),
+                    "subject", subject,
+                    "text", text
+                ))
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+
+            logger.info("Simple email sent successfully to: {} via Resend", to);
         } catch (Exception e) {
-            logger.error("Failed to send simple email to: {}", to, e);
+            logger.error("Failed to send simple email via Resend to: {}", to, e);
             throw new com.kuru.delivery.common.exception.EmailSendingException(
                 "Unable to send email at this time. Please try again later or contact support.", e);
         }
