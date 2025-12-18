@@ -57,7 +57,13 @@ public class SecurityConfig {
                             "/api/orders/*/eta",
                             "/ws-location/**",
                             "/api/payments/webhook",
-                            "/api/faqs"
+                            "/api/faqs",
+                         // Swagger / OpenAPI endpoints should be public
+                            "/v3/api-docs/**",
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/swagger-ui/index.html",
+                            "/scalar/**"
                     ).permitAll()
                     .requestMatchers("/h2-console/**").hasRole("ADMIN")
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/scalar/**")
