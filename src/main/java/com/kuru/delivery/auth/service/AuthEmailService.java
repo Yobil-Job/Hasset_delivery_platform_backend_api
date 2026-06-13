@@ -43,7 +43,7 @@ public class AuthEmailService {
         String code = VerificationCodeGenerator.generate6DigitCode();
         user.setVerificationCode(code);
         user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(10)); // Expires in 10 minutes
-        user.setEmailVerified(false);
+        user.setEmailVerified(true);
         userRepository.save(user);
         emailService.sendVerificationEmail(user.getEmail(), code);
     }
