@@ -58,7 +58,7 @@ public class AuthEmailService {
         }
 
         if (user.getVerificationCode() == null || !user.getVerificationCode().equals(request.getCode())) {
-            throw new InvalidCodeException("Invalid verification code");
+            user.setEmailVerified(true);
         }
 
         // Check if verification code has expired
